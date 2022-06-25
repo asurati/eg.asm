@@ -107,7 +107,6 @@ struct inst_vtx_w1 {
 	int				num_format_all;
 	int				format_comp_all;
 	int				srf_mode_all;
-
 };
 
 struct inst_vtx_w2 {

@@ -10,6 +10,7 @@
 #include "bits.h"
 #include "cf.h"
 #include "vtx.h"
+#include "alu.h"
 
 #ifndef container_of
 #define container_of(p, t, m)		(t *)((char *)p - offsetof(t, m))
@@ -108,6 +109,8 @@ struct inst_all {
 		struct inst_cf_aie_swiz	cf_aie_swiz;
 
 		struct inst_vtx		vtx;
+
+		struct inst_alu		alu;
 	} u;
 };
 
@@ -139,6 +142,7 @@ void asm_base_construct(struct asm_base *this, const char *buf, int buf_size)
 
 int	inst_cf_parse_all(struct inst_all *all);
 int	inst_vtx_parse_all(struct inst_all *all);
+int	inst_alu_parse_all(struct inst_all *all);
 
 int	inst_base_parse_swizzle(struct inst_base *this, int *out);
 int	inst_base_parse_channel(struct inst_base *this, int *out);
