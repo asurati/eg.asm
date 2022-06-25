@@ -9,6 +9,7 @@
 
 #include "bits.h"
 #include "cf.h"
+#include "vtx.h"
 
 #ifndef container_of
 #define container_of(p, t, m)		(t *)((char *)p - offsetof(t, m))
@@ -105,6 +106,8 @@ struct inst_all {
 		struct inst_cf_aie_rat	cf_aie_rat;
 		struct inst_cf_aie_buf	cf_aie_buf;
 		struct inst_cf_aie_swiz	cf_aie_swiz;
+
+		struct inst_vtx		vtx;
 	} u;
 };
 
@@ -135,8 +138,10 @@ void asm_base_construct(struct asm_base *this, const char *buf, int buf_size)
 }
 
 int	inst_cf_parse_all(struct inst_all *all);
+int	inst_vtx_parse_all(struct inst_all *all);
 
-int	inst_base_parse_swizzle(struct inst_base *this, int *swiz);
+int	inst_base_parse_swizzle(struct inst_base *this, int *out);
+int	inst_base_parse_channel(struct inst_base *this, int *out);
 int	inst_base_parse_register(struct inst_base *this, int *out);
 int	inst_base_parse_number(struct inst_base *this, int *out);
 int	inst_base_parse_count(struct inst_base *this, int *out);
@@ -227,86 +232,6 @@ int	inst_base_parse_count(struct inst_base *this, int *out);
 
 /**** ALU_WORD1_OP3 ****/
 /* TODO */
-
-/**** VTX_WORD0 ****/
-#define SQ_VTX_WORD0_INST_POS				0
-#define SQ_VTX_WORD0_FETCH_TYPE_POS			5
-#define SQ_VTX_WORD0_FETCH_WHOLE_QUAD_POS		7
-#define SQ_VTX_WORD0_BUF_ID_POS				8
-#define SQ_VTX_WORD0_SRC_GPR_POS			16
-#define SQ_VTX_WORD0_SRC_REL_POS			23
-#define SQ_VTX_WORD0_SRC_SEL_X_POS			24
-#define SQ_VTX_WORD0_MEGA_FETCH_COUNT_POS		26
-#define SQ_VTX_WORD0_INST_BITS				5
-#define SQ_VTX_WORD0_FETCH_TYPE_BITS			2
-#define SQ_VTX_WORD0_FETCH_WHOLE_QUAD_BITS		1
-#define SQ_VTX_WORD0_BUF_ID_BITS			8
-#define SQ_VTX_WORD0_SRC_GPR_BITS			7
-#define SQ_VTX_WORD0_SRC_REL_BITS			1
-#define SQ_VTX_WORD0_SRC_SEL_X_BITS			2
-#define SQ_VTX_WORD0_MEGA_FETCH_COUNT_BITS		6
-
-#define VTX_FETCH_TYPE_VERTEX				0
-#define VTX_FETCH_TYPE_INSTANCE				1
-
-#define VTX_INST_FETCH					0
-#define VTX_INST_SEMANTIC				1
-
-/**** VTX_WORD1_GPR ****/
-#define SQ_VTX_WORD1_GPR_DST_GPR_POS			0
-#define SQ_VTX_WORD1_GPR_DST_REL_POS			7
-#define SQ_VTX_WORD1_GPR_DST_GPR_BITS			7
-#define SQ_VTX_WORD1_GPR_DST_REL_BITS			1
-
-/**** VTX_WORD1_SEM ****/
-#define SQ_VTX_WORD1_SEM_ID_POS				0
-#define SQ_VTX_WORD1_SEM_ID_BITS			8
-
-/**** VTX_WORD1 ****/
-#define SQ_VTX_WORD1_DST_SEL_X_POS			9
-#define SQ_VTX_WORD1_DST_SEL_Y_POS			12
-#define SQ_VTX_WORD1_DST_SEL_Z_POS			15
-#define SQ_VTX_WORD1_DST_SEL_W_POS			18
-#define SQ_VTX_WORD1_USE_CONST_FIELDS_POS		21
-#define SQ_VTX_WORD1_DATA_FORMAT_POS			22
-#define SQ_VTX_WORD1_NUM_FORMAT_ALL_POS			28
-#define SQ_VTX_WORD1_FORMAT_COMP_ALL_POS		30
-#define SQ_VTX_WORD1_SRF_MODE_ALL_POS			31
-#define SQ_VTX_WORD1_DST_SEL_X_BITS			3
-#define SQ_VTX_WORD1_DST_SEL_Y_BITS			3
-#define SQ_VTX_WORD1_DST_SEL_Z_BITS			3
-#define SQ_VTX_WORD1_DST_SEL_W_BITS			3
-#define SQ_VTX_WORD1_USE_CONST_FIELDS_BITS		1
-#define SQ_VTX_WORD1_DATA_FORMAT_BITS			6
-#define SQ_VTX_WORD1_NUM_FORMAT_ALL_BITS		2
-#define SQ_VTX_WORD1_FORMAT_COMP_ALL_BITS		1
-#define SQ_VTX_WORD1_SRF_MODE_ALL_BITS			1
-
-#define FMT_32_32_FLOAT					30
-#define FMT_32_32_32_32_FLOAT				35
-#define FMT_32_32_32					47
-#define FMT_32_32_32_FLOAT				48
-
-#define FORMAT_COMP_UNSIGNED				0
-#define FORMAT_COMP_SIGNED				1
-
-#define NUM_FORMAT_NORM					0
-#define NUM_FORMAT_INT					1
-#define NUM_FORMAT_SCALED				2
-
-/**** VTX_WORD2 ****/
-#define SQ_VTX_WORD2_OFFSET_POS				0
-#define SQ_VTX_WORD2_ENDIAN_SWAP_POS			16
-#define SQ_VTX_WORD2_CONST_BUF_NO_STRIDE_POS		18
-#define SQ_VTX_WORD2_MEGA_FETCH_POS			19
-#define SQ_VTX_WORD2_ALT_CONST_POS			20
-#define SQ_VTX_WORD2_BUF_INDEX_MODE_POS			21
-#define SQ_VTX_WORD2_OFFSET_BITS			16
-#define SQ_VTX_WORD2_ENDIAN_SWAP_BITS			2
-#define SQ_VTX_WORD2_CONST_BUF_NO_STRIDE_BITS		1
-#define SQ_VTX_WORD2_MEGA_FETCH_BITS			1
-#define SQ_VTX_WORD2_ALT_CONST_BITS			1
-#define SQ_VTX_WORD2_BUF_INDEX_MODE_BITS		2
 
 #define CF_INDEX_NONE					0
 #define CF_INDEX_0					1

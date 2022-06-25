@@ -159,6 +159,8 @@ int inst_all_parse(struct inst_all *this)
 	err = EINVAL;
 	if (inst_base_is_next_token(base, "c"))
 		err = inst_cf_parse_all(this);
+	else if (inst_base_is_next_token(base, "v"))
+		err = inst_vtx_parse_all(this);
 	return err;
 }
 
@@ -305,16 +307,21 @@ int inst_base_parse_swizzle_char(struct inst_base *this, char sc)
 	(void)this;
 }
 
+int inst_base_parse_channel(struct inst_base *this, int *out)
+{
+	const char *t;
+
+	t = inst_base_get_next_token(this);
+	if (strlen(t) != 1)
+		return EINVAL;
+	*out = inst_base_parse_swizzle_char(this, t[0]);
+	return 0;
+}
+
 int inst_base_parse_swizzle(struct inst_base *this, int *swiz)
 {
 	int i;
 	const char *t;
-
-	/* Defaults */
-	swiz[SEL_X] = SEL_X;
-	swiz[SEL_Y] = SEL_Y;
-	swiz[SEL_Z] = SEL_Z;
-	swiz[SEL_W] = SEL_W;
 
 	t = inst_base_get_next_token(this);
 	if (strlen(t) != 4)
