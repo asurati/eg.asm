@@ -121,6 +121,7 @@ int inst_vtx_parse_all(struct inst_all *all)
 		if (err)
 			return err;
 	}
+
 	/* Flags and ; */
 	for (;;) {
 		if (inst_base_is_next_token(base, ";"))
@@ -138,6 +139,10 @@ next_flag:
 			this->w1.srf_mode_all = 1;
 		else if (inst_base_is_next_token(base, "fwq"))
 			this->w0.fetch_whole_quad = 1;
+		else if (inst_base_is_next_token(base, "srel"))
+			this->w0.src_rel = 1;
+		else if (inst_base_is_next_token(base, "drel"))
+			this->w1.dst_rel = 1;
 		else
 			return EINVAL;
 
