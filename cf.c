@@ -240,6 +240,125 @@ next_flag:
 	return 0;
 }
 
+/* kc#(bufid[addr],mode) */
+static
+int inst_cf_alu_parse_kcache(struct inst_cf_alu *this, int ix)
+{
+	int buf, mode, addr, err;
+	struct inst_base *base;
+	struct inst_all *all;
+
+	all = container_of(this, struct inst_all, u.cf_alu);
+	base = &all->base;
+
+	if (inst_base_is_next_token(base, "(") == false)
+		return EINVAL;
+
+	err = inst_base_parse_number(base, &buf);
+	if (err)
+		return err;
+
+	if (inst_base_is_next_token(base, "[") == false)
+		return EINVAL;
+	err = inst_base_parse_number(base, &addr);
+	if (err)
+		return err;
+	if (inst_base_is_next_token(base, "]") == false)
+		return EINVAL;
+
+	if (inst_base_is_next_token(base, ",") == false)
+		return EINVAL;
+
+	if (inst_base_is_next_token(base, "nop"))
+		mode = CF_KCACHE_MODE_NOP;
+	else if (inst_base_is_next_token(base, "l1"))
+		mode = CF_KCACHE_MODE_LOCK_1;
+	else if (inst_base_is_next_token(base, "l2"))
+		mode = CF_KCACHE_MODE_LOCK_2;
+	else if (inst_base_is_next_token(base, "lli"))
+		mode = CF_KCACHE_MODE_LOCK_LOOP_INDEX;
+	else
+		return EINVAL;
+
+	if (inst_base_is_next_token(base, ")") == false)
+		return EINVAL;
+
+	if (ix == 0) {
+		this->w0.kcache_bank0 = buf;
+		this->w0.kcache_mode0 = mode;
+		this->w1.kcache_addr0 = addr;
+	} else if (ix == 1) {
+		this->w0.kcache_bank1 = buf;
+		this->w1.kcache_mode1 = mode;
+		this->w1.kcache_addr1 = addr;
+	} else if (ix == 2) {
+		this->w2.kcache_bank2 = buf;
+		this->w2.kcache_mode2 = mode;
+		this->w3.kcache_addr2 = addr;
+	} else if (ix == 3) {
+		this->w2.kcache_bank3 = buf;
+		this->w3.kcache_mode3 = mode;
+		this->w3.kcache_addr3 = addr;
+	} else {
+		return EINVAL;
+	}
+	return 0;
+}
+
+static
+int inst_cf_alu_parse(struct inst_cf_alu *this, int code)
+{
+	int err, count;
+	struct inst_base *base;
+	struct inst_all *all;
+
+	all = container_of(this, struct inst_all, u.cf_alu);
+	base = &all->base;
+
+	this->w1.cf_inst = code;
+
+	/* # of instructions in (%d) or (0x%x) */
+	err = inst_base_parse_count(base, &count);
+	if (err)
+		return err;
+	this->w1.count = count;	/* -1 when encoding. */
+
+	/* KC0 KC1 */
+	if (inst_base_is_next_token(base, "kc0")) {
+		err = inst_cf_alu_parse_kcache(this, 0);
+		if (err)
+			return err;
+	}
+
+	if (inst_base_is_next_token(base, "kc1")) {
+		err = inst_cf_alu_parse_kcache(this, 1);
+		if (err)
+			return err;
+	}
+
+	/* Label */
+	this->w0.label = inst_base_get_next_token(base);
+
+	/* Flags and ; */
+	for (;;) {
+		if (inst_base_is_next_token(base, ";"))
+			break;
+next_flag:
+		if (inst_base_is_next_token(base, "alt"))
+			this->w1.alt_const = 1;
+		else if (inst_base_is_next_token(base, "wqm"))
+			this->w1.whole_quad_mode = 1;
+		else if (inst_base_is_next_token(base, "b"))
+			this->w1.barrier = 1;
+		else
+			return EINVAL;
+
+		if (inst_base_is_next_token(base, ","))
+			goto next_flag;
+	}
+	return 0;
+}
+
 int inst_cf_parse_all(struct inst_all *all)
 {
 	int err, code;
@@ -254,9 +373,21 @@ int inst_cf_parse_all(struct inst_all *all)
 	if (inst_base_is_next_token(base, "fs")) {
 		base->type = IT_CF;
 		code = CF_INST_CALL_FS;
+	} else if (inst_base_is_next_token(base, "vc")) {
+		base->type = IT_CF;
+		code = CF_INST_VC;
+	} else if (inst_base_is_next_token(base, "ret")) {
+		base->type = IT_CF;
+		code = CF_INST_RETURN;
+	} else if (inst_base_is_next_token(base, "nop")) {
+		base->type = IT_CF;
+		code = CF_INST_NOP;
 	} else if (inst_base_is_next_token(base, "xd")) {
 		base->type = IT_CF_AIE_SWIZ;
 		code = CF_INST_EXPORT_DONE;
+	} else if (inst_base_is_next_token(base, "alu")) {
+		base->type = IT_CF_ALU;
+		code = CF_INST_ALU;
 	}
 
 	switch (base->type) {
@@ -265,6 +396,9 @@ int inst_cf_parse_all(struct inst_all *all)
 		break;
 	case IT_CF_AIE_SWIZ:
 		err = inst_cf_aie_swiz_parse(&all->u.cf_aie_swiz, code);
+		break;
+	case IT_CF_ALU:
+		err = inst_cf_alu_parse(&all->u.cf_alu, code);
 		break;
 	default:
 		err = EINVAL;
