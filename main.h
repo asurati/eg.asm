@@ -11,6 +11,7 @@
 #include "cf.h"
 #include "vtx.h"
 #include "alu.h"
+#include "tex.h"
 
 #ifndef container_of
 #define container_of(p, t, m)		(t *)((char *)p - offsetof(t, m))
@@ -109,8 +110,8 @@ struct inst_all {
 		struct inst_cf_aie_swiz	cf_aie_swiz;
 
 		struct inst_vtx		vtx;
-
 		struct inst_alu		alu;
+		struct inst_tex		tex;
 	} u;
 };
 
@@ -143,164 +144,11 @@ void asm_base_construct(struct asm_base *this, const char *buf, int buf_size)
 int	inst_cf_parse_all(struct inst_all *all);
 int	inst_vtx_parse_all(struct inst_all *all);
 int	inst_alu_parse_all(struct inst_all *all);
+int	inst_tex_parse_all(struct inst_all *all);
 
 int	inst_base_parse_swizzle(struct inst_base *this, int *out);
 int	inst_base_parse_channel(struct inst_base *this, int *out);
 int	inst_base_parse_register(struct inst_base *this, int *out);
 int	inst_base_parse_number(struct inst_base *this, int *out);
 int	inst_base_parse_count(struct inst_base *this, int *out);
-
-/**** ALU_WORD0 ****/
-#define SQ_ALU_WORD0_SRC0_SEL_POS			0
-#define SQ_ALU_WORD0_SRC0_REL_POS			9
-#define SQ_ALU_WORD0_SRC0_CHAN_POS			10
-#define SQ_ALU_WORD0_SRC0_NEG_POS			12
-#define SQ_ALU_WORD0_SRC1_SEL_POS			13
-#define SQ_ALU_WORD0_SRC1_REL_POS			22
-#define SQ_ALU_WORD0_SRC1_CHAN_POS			23
-#define SQ_ALU_WORD0_SRC1_NEG_POS			25
-#define SQ_ALU_WORD0_INDEX_MODE_POS			26
-#define SQ_ALU_WORD0_PRED_SEL_POS			29
-#define SQ_ALU_WORD0_LAST_POS				31
-#define SQ_ALU_WORD0_SRC0_SEL_BITS			9
-#define SQ_ALU_WORD0_SRC0_REL_BITS			1
-#define SQ_ALU_WORD0_SRC0_CHAN_BITS			2
-#define SQ_ALU_WORD0_SRC0_NEG_BITS			1
-#define SQ_ALU_WORD0_SRC1_SEL_BITS			9
-#define SQ_ALU_WORD0_SRC1_REL_BITS			1
-#define SQ_ALU_WORD0_SRC1_CHAN_BITS			2
-#define SQ_ALU_WORD0_SRC1_NEG_BITS			1
-#define SQ_ALU_WORD0_INDEX_MODE_BITS			3
-#define SQ_ALU_WORD0_PRED_SEL_BITS			2
-#define SQ_ALU_WORD0_LAST_BITS				1
-
-#define INDEX_AR_X					0
-#define INDEX_LOOP					4
-#define INDEX_GLOBAL					5
-#define INDEX_GLOBAL_AR_X				6
-
-#define PRED_SEL_OFF					0
-#define PRED_SEL_0					2
-#define PRED_SEL_1					3
-
-#define ALU_SRC_GPR_BASE				0
-#define ALU_SRC_PARAM_BASE				0x1c0
-
-/**** ALU_WORD1_OP2 ****/
-#define SQ_ALU_WORD1_OP2_SRC0_ABS_POS			0
-#define SQ_ALU_WORD1_OP2_SRC1_ABS_POS			1
-#define SQ_ALU_WORD1_OP2_UPDATE_EXEC_MASK_POS		2
-#define SQ_ALU_WORD1_OP2_UPDATE_PRED_POS		3
-#define SQ_ALU_WORD1_OP2_WRITE_DST_POS			4
-#define SQ_ALU_WORD1_OP2_OUT_MOD_POS			5
-#define SQ_ALU_WORD1_OP2_SRC0_ABS_BITS			1
-#define SQ_ALU_WORD1_OP2_SRC1_ABS_BITS			1
-#define SQ_ALU_WORD1_OP2_UPDATE_EXEC_MASK_BITS		1
-#define SQ_ALU_WORD1_OP2_UPDATE_PRED_BITS		1
-#define SQ_ALU_WORD1_OP2_WRITE_DST_BITS			1
-#define SQ_ALU_WORD1_OP2_OUT_MOD_BITS			2
-
-#define SQ_ALU_WORD1_INST_POS				7
-#define SQ_ALU_WORD1_BANK_SWIZZLE_POS			18
-#define SQ_ALU_WORD1_DST_GPR_POS			21
-#define SQ_ALU_WORD1_DST_REL_POS			28
-#define SQ_ALU_WORD1_DST_CHAN_POS			29
-#define SQ_ALU_WORD1_CLAMP_POS				31
-#define SQ_ALU_WORD1_INST_BITS				11
-#define SQ_ALU_WORD1_BANK_SWIZZLE_BITS			3
-#define SQ_ALU_WORD1_DST_GPR_BITS			7
-#define SQ_ALU_WORD1_DST_REL_BITS			1
-#define SQ_ALU_WORD1_DST_CHAN_BITS			2
-#define SQ_ALU_WORD1_CLAMP_BITS				1
-
-#define ALU_OP2_INST_INTERP_XY				214
-#define ALU_OP2_INST_INTERP_ZW				215
-#define ALU_OP2_INST_INTERP_Z				217
-
-#define ALU_OMOD_OFF					0
-#define ALU_OMOD_M2					1
-#define ALU_OMOD_M4					2
-#define ALU_OMOD_D2					3
-
-#define ALU_VEC_012					0
-#define ALU_VEC_021					1
-#define ALU_VEC_120					2
-#define ALU_VEC_102					3
-#define ALU_VEC_201					4
-#define ALU_VEC_210					5
-
-#define ALU_SCL_210					0
-#define ALU_SCL_122					1
-#define ALU_SCL_212					2
-#define ALU_SCL_221					3
-
-/**** ALU_WORD1_OP3 ****/
-/* TODO */
-
-#define CF_INDEX_NONE					0
-#define CF_INDEX_0					1
-#define CF_INDEX_1					2
-#define CF_INVALID					3
-
-/**** TEX_WORD0 ****/
-#define SQ_TEX_WORD0_INST_POS				0
-#define SQ_TEX_WORD0_INST_MOD_POS			5
-#define SQ_TEX_WORD0_FETCH_WHOLE_QUAD_POS		7
-#define SQ_TEX_WORD0_RSRC_ID_POS			8
-#define SQ_TEX_WORD0_SRC_GPR_POS			16
-#define SQ_TEX_WORD0_SRC_REL_POS			23
-#define SQ_TEX_WORD0_ALT_CONST_POS			24
-#define SQ_TEX_WORD0_RSRC_INDEX_MODE_POS		25
-#define SQ_TEX_WORD0_SAMPLER_INDEX_MODE_POS		27
-#define SQ_TEX_WORD0_INST_BITS				5
-#define SQ_TEX_WORD0_INST_MOD_BITS			2
-#define SQ_TEX_WORD0_FETCH_WHOLE_QUAD_BITS		1
-#define SQ_TEX_WORD0_RSRC_ID_BITS			8
-#define SQ_TEX_WORD0_SRC_GPR_BITS			7
-#define SQ_TEX_WORD0_SRC_REL_BITS			1
-#define SQ_TEX_WORD0_ALT_CONST_BITS			1
-#define SQ_TEX_WORD0_RSRC_INDEX_MODE_BITS		2
-#define SQ_TEX_WORD0_SAMPLER_INDEX_MODE_BITS		2
-
-/**** TEX_WORD1 ****/
-#define SQ_TEX_WORD1_DST_GPR_POS			0
-#define SQ_TEX_WORD1_DST_REL_POS			7
-#define SQ_TEX_WORD1_DST_SEL_X_POS			9
-#define SQ_TEX_WORD1_DST_SEL_Y_POS			12
-#define SQ_TEX_WORD1_DST_SEL_Z_POS			15
-#define SQ_TEX_WORD1_DST_SEL_W_POS			18
-#define SQ_TEX_WORD1_LOD_BIAS_POS			21
-#define SQ_TEX_WORD1_COORD_TYPE_X_POS			28
-#define SQ_TEX_WORD1_COORD_TYPE_Y_POS			29
-#define SQ_TEX_WORD1_COORD_TYPE_Z_POS			30
-#define SQ_TEX_WORD1_COORD_TYPE_W_POS			31
-#define SQ_TEX_WORD1_DST_GPR_BITS			7
-#define SQ_TEX_WORD1_DST_REL_BITS			1
-#define SQ_TEX_WORD1_DST_SEL_X_BITS			3
-#define SQ_TEX_WORD1_DST_SEL_Y_BITS			3
-#define SQ_TEX_WORD1_DST_SEL_Z_BITS			3
-#define SQ_TEX_WORD1_DST_SEL_W_BITS			3
-#define SQ_TEX_WORD1_LOD_BIAS_BITS			7
-#define SQ_TEX_WORD1_COORD_TYPE_X_BITS			1
-#define SQ_TEX_WORD1_COORD_TYPE_Y_BITS			1
-#define SQ_TEX_WORD1_COORD_TYPE_Z_BITS			1
-#define SQ_TEX_WORD1_COORD_TYPE_W_BITS			1
-
-/**** TEX_WORD2 ****/
-#define SQ_TEX_WORD2_OFFSET_X_POS			0
-#define SQ_TEX_WORD2_OFFSET_Y_POS			5
-#define SQ_TEX_WORD2_OFFSET_Z_POS			10
-#define SQ_TEX_WORD2_SAMPLER_ID_POS			15
-#define SQ_TEX_WORD2_SRC_SEL_X_POS			20
-#define SQ_TEX_WORD2_SRC_SEL_Y_POS			23
-#define SQ_TEX_WORD2_SRC_SEL_Z_POS			26
-#define SQ_TEX_WORD2_SRC_SEL_W_POS			29
-#define SQ_TEX_WORD2_OFFSET_X_BITS			5
-#define SQ_TEX_WORD2_OFFSET_Y_BITS			5
-#define SQ_TEX_WORD2_OFFSET_Z_BITS			5
-#define SQ_TEX_WORD2_SAMPLER_ID_BITS			5
-#define SQ_TEX_WORD2_SRC_SEL_X_BITS			3
-#define SQ_TEX_WORD2_SRC_SEL_Y_BITS			3
-#define SQ_TEX_WORD2_SRC_SEL_Z_BITS			3
-#define SQ_TEX_WORD2_SRC_SEL_W_BITS			3
 #endif

@@ -163,6 +163,8 @@ int inst_all_parse(struct inst_all *this)
 		err = inst_vtx_parse_all(this);
 	else if (inst_base_is_next_token(base, "a"))
 		err = inst_alu_parse_all(this);
+	else if (inst_base_is_next_token(base, "t"))
+		err = inst_tex_parse_all(this);
 	return err;
 }
 
