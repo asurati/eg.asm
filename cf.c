@@ -452,6 +452,7 @@ int inst_cf_parse_all(struct inst_all *all)
 	struct inst_base *base;
 
 	base = &all->base;
+	code = -1;
 
 	if (inst_base_is_next_token(base, ".") == false)
 		return EINVAL;
@@ -508,6 +509,7 @@ int inst_cf_fix_labels_all(struct inst_all *all)
 	/* only IT_CF, IT_CF_ALU and IT_CF_ALU_EXT have labels. */
 	base = &all->base;
 	label = NULL;
+	err = 0;
 
 	switch (base->type) {
 	case IT_CF:

@@ -217,6 +217,7 @@ int inst_alu_parse_all(struct inst_all *all)
 
 	base = &all->base;
 	this = &all->u.alu;
+	code = -1;
 
 	if (inst_base_is_next_token(base, ".") == false)
 		return EINVAL;
