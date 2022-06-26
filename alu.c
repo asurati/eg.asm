@@ -92,6 +92,58 @@ int inst_alu_parse_src(struct inst_alu *this, bool is_op2, int ix)
 }
 
 static
+int inst_alu_encode(struct inst_alu *this, bool is_op2)
+{
+	int *w, t[2];
+	struct inst_base *base;
+	struct inst_all *all;
+
+	all = container_of(this, struct inst_all, u.alu);
+	base = &all->base;
+	w = base->w;
+	t[0] = t[1] = 0;
+
+	w[0] |= bits_set(ALU_WORD0_SRC0_SEL, this->w0.src0_sel);
+	w[0] |= bits_set(ALU_WORD0_SRC0_REL, this->w0.src0_rel);
+	w[0] |= bits_set(ALU_WORD0_SRC0_CHAN, this->w0.src0_chan);
+	w[0] |= bits_set(ALU_WORD0_SRC0_NEG, this->w0.src0_neg);
+	w[0] |= bits_set(ALU_WORD0_SRC1_SEL, this->w0.src1_sel);
+	w[0] |= bits_set(ALU_WORD0_SRC1_REL, this->w0.src1_rel);
+	w[0] |= bits_set(ALU_WORD0_SRC1_CHAN, this->w0.src1_chan);
+	w[0] |= bits_set(ALU_WORD0_SRC1_NEG, this->w0.src1_neg);
+	w[0] |= bits_set(ALU_WORD0_INDEX_MODE, this->w0.index_mode);
+	w[0] |= bits_set(ALU_WORD0_PRED_SEL, this->w0.pred_sel);
+	w[0] |= bits_set(ALU_WORD0_LAST, this->w0.last);
+
+	/* Only in op2 */
+	t[0] |= bits_set(ALU_WORD1_OP2_SRC0_ABS, this->w1.src0_abs);
+	t[0] |= bits_set(ALU_WORD1_OP2_SRC1_ABS, this->w1.src1_abs);
+	t[0] |= bits_set(ALU_WORD1_OP2_UPDATE_EXEC_MASK, this->w1.update_exec_mask);
+	t[0] |= bits_set(ALU_WORD1_OP2_UPDATE_PRED, this->w1.update_pred);
+	t[0] |= bits_set(ALU_WORD1_OP2_WRITE_ENABLE, this->w1.write_enable);
+	t[0] |= bits_set(ALU_WORD1_OP2_OUT_MOD, this->w1.omod);
+
+	/* Only in op3 */
+	t[1] |= bits_set(ALU_WORD1_OP3_SRC2_SEL, this->w1.src2_sel);
+	t[1] |= bits_set(ALU_WORD1_OP3_SRC2_REL, this->w1.src2_rel);
+	t[1] |= bits_set(ALU_WORD1_OP3_SRC2_CHAN, this->w1.src2_chan);
+	t[1] |= bits_set(ALU_WORD1_OP3_SRC2_NEG, this->w1.src2_neg);
+
+	if (is_op2)
+		w[1] |= t[0];
+	else
+		w[1] |= t[1];
+
+	w[1] |= bits_set(ALU_WORD1_INST, this->w1.alu_inst);
+	w[1] |= bits_set(ALU_WORD1_BANK_SWIZZLE, this->w1.bank_swizzle);
+	w[1] |= bits_set(ALU_WORD1_DST_GPR, this->w1.dst_gpr);
+	w[1] |= bits_set(ALU_WORD1_DST_REL, this->w1.dst_rel);
+	w[1] |= bits_set(ALU_WORD1_DST_CHAN, this->w1.dst_chan);
+	w[1] |= bits_set(ALU_WORD1_CLAMP, this->w1.clamp);
+	return 0;
+}
+
+static
 int inst_alu_parse(struct inst_alu *this, int code, bool is_op2)
 {
 	int err;
@@ -245,6 +297,26 @@ next_flag:
 
 		if (inst_base_is_next_token(base, ","))
 			goto next_flag;
+	}
+	return err;
+}
+
+int inst_alu_encode_all(struct inst_all *all)
+{
+	int err;
+	struct inst_base *base;
+
+	base = &all->base;
+	switch (base->type) {
+	case IT_ALU_OP2:
+		err = inst_alu_encode(&all->u.alu, true);
+		break;
+	case IT_ALU_OP3:
+		err = inst_alu_encode(&all->u.alu, false);
+		break;
+	default:
+		err = EINVAL;
+		break;
 	}
 	return err;
 }
