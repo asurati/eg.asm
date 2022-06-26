@@ -11,6 +11,54 @@
 
 #include "main.h"
 
+int inst_vtx_encode_all(struct inst_all *all)
+{
+	int *w, t[2];
+	struct inst_base *base;
+	struct inst_vtx *this;
+
+	this = &all->u.vtx;
+	base = &all->base;
+	w = base->w;
+	t[0] = t[1] = 0;
+
+	w[0] |= bits_set(VTX_WORD0_INST, this->w0.vc_inst);
+	w[0] |= bits_set(VTX_WORD0_FETCH_TYPE, this->w0.fetch_type);
+	w[0] |= bits_set(VTX_WORD0_FETCH_WHOLE_QUAD, this->w0.fetch_whole_quad);
+	w[0] |= bits_set(VTX_WORD0_BUF_ID, this->w0.buffer_id);
+	w[0] |= bits_set(VTX_WORD0_SRC_GPR, this->w0.src_gpr);
+	w[0] |= bits_set(VTX_WORD0_SRC_REL, this->w0.src_rel);
+	w[0] |= bits_set(VTX_WORD0_SRC_SEL_X, this->w0.src_sel_x);
+	w[0] |= bits_set(VTX_WORD0_MEGA_FETCH_COUNT, this->w0.mega_fetch_count);
+
+	t[0] |= bits_set(VTX_WORD1_SEM_ID, this->w1.sem_id);
+
+	t[1] |= bits_set(VTX_WORD1_GPR_DST_GPR, this->w1.dst_gpr);
+	t[1] |= bits_set(VTX_WORD1_GPR_DST_REL, this->w1.dst_rel);
+
+	if (this->w0.vc_inst == VC_INST_SEMANTIC)
+		w[1] |= t[0];
+	else
+		w[1] |= t[1];
+	w[1] |= bits_set(VTX_WORD1_DST_SEL_X, this->w1.dst_sel_x);
+	w[1] |= bits_set(VTX_WORD1_DST_SEL_Y, this->w1.dst_sel_y);
+	w[1] |= bits_set(VTX_WORD1_DST_SEL_Z, this->w1.dst_sel_z);
+	w[1] |= bits_set(VTX_WORD1_DST_SEL_W, this->w1.dst_sel_w);
+	w[1] |= bits_set(VTX_WORD1_USE_CONST_FIELDS, this->w1.use_const_fields);
+	w[1] |= bits_set(VTX_WORD1_DATA_FORMAT, this->w1.data_format);
+	w[1] |= bits_set(VTX_WORD1_NUM_FORMAT_ALL, this->w1.num_format_all);
+	w[1] |= bits_set(VTX_WORD1_FORMAT_COMP_ALL, this->w1.format_comp_all);
+	w[1] |= bits_set(VTX_WORD1_SRF_MODE_ALL, this->w1.srf_mode_all);
+
+	w[2] |= bits_set(VTX_WORD2_OFFSET, this->w2.offset);
+	w[2] |= bits_set(VTX_WORD2_ENDIAN_SWAP, this->w2.endian_swap);
+	w[2] |= bits_set(VTX_WORD2_CONST_BUF_NO_STRIDE, this->w2.const_buf_no_stride);
+	w[2] |= bits_set(VTX_WORD2_MEGA_FETCH, this->w2.mega_fetch);
+	w[2] |= bits_set(VTX_WORD2_ALT_CONST, this->w2.alt_const);
+	w[2] |= bits_set(VTX_WORD2_BUF_INDEX_MODE, this->w2.buffer_index_mode);
+	return 0;
+}
+
 int inst_vtx_parse_all(struct inst_all *all)
 {
 	int err, code, swiz[4];

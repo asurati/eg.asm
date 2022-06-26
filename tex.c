@@ -11,6 +11,49 @@
 
 #include "main.h"
 
+int inst_tex_encode_all(struct inst_all *all)
+{
+	int *w;
+	struct inst_base *base;
+	struct inst_tex *this;
+
+	this = &all->u.tex;
+	base = &all->base;
+	w = base->w;
+
+	w[0] |= bits_set(TEX_WORD0_INST, this->w0.tex_inst);
+	w[0] |= bits_set(TEX_WORD0_INST_MOD, this->w0.inst_mod);
+	w[0] |= bits_set(TEX_WORD0_FETCH_WHOLE_QUAD, this->w0.fetch_whole_quad);
+	w[0] |= bits_set(TEX_WORD0_RSRC_ID, this->w0.rsrc_id);
+	w[0] |= bits_set(TEX_WORD0_SRC_GPR, this->w0.src_gpr);
+	w[0] |= bits_set(TEX_WORD0_SRC_REL, this->w0.src_rel);
+	w[0] |= bits_set(TEX_WORD0_ALT_CONST, this->w0.alt_const);
+	w[0] |= bits_set(TEX_WORD0_RSRC_INDEX_MODE, this->w0.rsrc_index_mode);
+	w[0] |= bits_set(TEX_WORD0_SAMPLER_INDEX_MODE, this->w0.sampler_index_mode);
+
+	w[1] |= bits_set(TEX_WORD1_DST_GPR, this->w1.dst_gpr);
+	w[1] |= bits_set(TEX_WORD1_DST_REL, this->w1.dst_rel);
+	w[1] |= bits_set(TEX_WORD1_DST_SEL_X, this->w1.dst_sel_x);
+	w[1] |= bits_set(TEX_WORD1_DST_SEL_Y, this->w1.dst_sel_y);
+	w[1] |= bits_set(TEX_WORD1_DST_SEL_Z, this->w1.dst_sel_z);
+	w[1] |= bits_set(TEX_WORD1_DST_SEL_W, this->w1.dst_sel_w);
+	w[1] |= bits_set(TEX_WORD1_LOD_BIAS, this->w1.lod_bias);
+	w[1] |= bits_set(TEX_WORD1_COORD_TYPE_X, this->w1.coord_type_x);
+	w[1] |= bits_set(TEX_WORD1_COORD_TYPE_Y, this->w1.coord_type_y);
+	w[1] |= bits_set(TEX_WORD1_COORD_TYPE_Z, this->w1.coord_type_z);
+	w[1] |= bits_set(TEX_WORD1_COORD_TYPE_W, this->w1.coord_type_w);
+
+	w[2] |= bits_set(TEX_WORD2_OFFSET_X, this->w2.offset_x);
+	w[2] |= bits_set(TEX_WORD2_OFFSET_Y, this->w2.offset_y);
+	w[2] |= bits_set(TEX_WORD2_OFFSET_Z, this->w2.offset_z);
+	w[2] |= bits_set(TEX_WORD2_SAMPLER_ID, this->w2.sampler_id);
+	w[2] |= bits_set(TEX_WORD2_SRC_SEL_X, this->w2.src_sel_x);
+	w[2] |= bits_set(TEX_WORD2_SRC_SEL_Y, this->w2.src_sel_y);
+	w[2] |= bits_set(TEX_WORD2_SRC_SEL_Z, this->w2.src_sel_z);
+	w[2] |= bits_set(TEX_WORD2_SRC_SEL_W, this->w2.src_sel_w);
+	return 0;
+}
+
 int inst_tex_parse_all(struct inst_all *all)
 {
 	int err, code, swiz[4];
