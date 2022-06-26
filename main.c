@@ -201,22 +201,24 @@ int inst_all_fix_labels(struct inst_all *this)
 	return err;
 }
 
-#if 0
 static
-int inst_base_encode(struct inst_base *this)
+int inst_all_encode(struct inst_all *this)
 {
-	union inst_all *in;
+	int err;
+	struct inst_base *base;
 
-	in = (union inst_all *)this;	/* Because ain.base is first member */
-	if (this->type >= IT_CF && this->type <= IT_CF_AIE_SWIZ)
-		return inst_cf_encode_all(in);
-	if (this->type == IT_VTX_GPR || this->type == IT_VTX_SEM)
-		return inst_vtx_encode_all(in);
-	if (this->type == IT_ALU_OP2 || this->type == IT_ALU_OP3)
-		return inst_alu_encode_all(in);
-	return EINVAL;
+	base = &this->base;
+	err = EINVAL;
+	if (base->type >= IT_CF && base->type <= IT_CF_AIE_SWIZ)
+		err = inst_cf_encode_all(this);
+	else if (base->type >= IT_ALU_OP2 && base->type <= IT_ALU_OP3)
+		err = inst_alu_encode_all(this);
+	else if (base->type >= IT_VTX_GPR && base->type <= IT_VTX_SEM)
+		err = inst_vtx_encode_all(this);
+	else if (base->type == IT_TEX)
+		err = inst_tex_encode_all(this);
+	return err;
 }
-#endif
 
 static
 void inst_all_print(const struct inst_all *this)
@@ -433,10 +435,9 @@ int main(int argc, char **argv)
 		return err;
 	}
 
-#if 0
 	for (i = 0; i < as.num_insts; ++i) {
-		in = &as.insts[i].base;
-		err = inst_base_encode(in);
+		in = &as.insts[i];
+		err = inst_all_encode(in);
 		if (err)
 			break;
 	}
@@ -445,7 +446,7 @@ int main(int argc, char **argv)
 		printf("encode err %d, i = %x\n", err, i);
 		return err;
 	}
-#endif
+
 	for (i = 0; i < as.num_insts; ++i) {
 		in = &as.insts[i];
 		inst_all_print(in);

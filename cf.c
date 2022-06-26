@@ -45,6 +45,33 @@ int inst_cf_parse_cc(struct inst_cf *this)
 	return err;
 }
 
+/* Mirror cf_parse */
+static
+int inst_cf_encode(struct inst_cf *this)
+{
+	int *w;
+	struct inst_base *base;
+	struct inst_all *all;
+
+	all = container_of(this, struct inst_all, u.cf);
+	base = &all->base;
+	w = base->w;
+
+	w[0] |= bits_set(CF_WORD0_ADDR, this->w0.addr);
+	w[0] |= bits_set(CF_WORD0_JMP_TAB_SEL, this->w0.jump_table_sel);
+
+	w[1] |= bits_set(CF_WORD1_POP_COUNT, this->w1.pop_count);
+	w[1] |= bits_set(CF_WORD1_CONST, this->w1.cf_const);
+	w[1] |= bits_set(CF_WORD1_COND, this->w1.cond);
+	w[1] |= bits_set(CF_WORD1_COUNT, this->w1.count - 1);
+	w[1] |= bits_set(CF_WORD1_VALID_PIXEL_MODE, this->w1.valid_pixel_mode);
+	w[1] |= bits_set(CF_WORD1_END_OF_PROGRAM, this->w1.end_of_program);
+	w[1] |= bits_set(CF_WORD1_INST, this->w1.cf_inst);
+	w[1] |= bits_set(CF_WORD1_WHOLE_QUAD_MODE, this->w1.whole_quad_mode);
+	w[1] |= bits_set(CF_WORD1_BARRIER, this->w1.barrier);
+	return 0;
+}
+
 static
 int inst_cf_parse(struct inst_cf *this, int code)
 {
@@ -138,6 +165,38 @@ int inst_cf_aie_parse_array_base(struct inst_base *base, int *out_arr_base,
 done:
 	if (inst_base_is_next_token(base, "]") == false)
 		return EINVAL;
+	return 0;
+}
+
+static
+int inst_cf_aie_swiz_encode(struct inst_cf_aie_swiz *this)
+{
+	int *w;
+	struct inst_base *base;
+	struct inst_all *all;
+
+	all = container_of(this, struct inst_all, u.cf_aie_swiz);
+	base = &all->base;
+	w = base->w;
+
+	w[0] |= bits_set(CF_AIE_WORD0_ARRAY_BASE, this->w0.array_base);
+	w[0] |= bits_set(CF_AIE_WORD0_TYPE, this->w0.type);
+	w[0] |= bits_set(CF_AIE_WORD0_RW_GPR, this->w0.rw_gpr);
+	w[0] |= bits_set(CF_AIE_WORD0_RW_REL, this->w0.rw_rel);
+	w[0] |= bits_set(CF_AIE_WORD0_INDEX_GPR, this->w0.index_gpr);
+	w[0] |= bits_set(CF_AIE_WORD0_ELEM_SIZE, this->w0.elem_size - 1);
+
+	w[1] |= bits_set(CF_AIE_WORD1_SWIZ_SEL_X, this->w1.sel_x);
+	w[1] |= bits_set(CF_AIE_WORD1_SWIZ_SEL_Y, this->w1.sel_y);
+	w[1] |= bits_set(CF_AIE_WORD1_SWIZ_SEL_Z, this->w1.sel_z);
+	w[1] |= bits_set(CF_AIE_WORD1_SWIZ_SEL_W, this->w1.sel_w);
+
+	w[1] |= bits_set(CF_AIE_WORD1_BURST_COUNT, this->w1.burst_count - 1);
+	w[1] |= bits_set(CF_AIE_WORD1_VALID_PIXEL_MODE, this->w1.valid_pixel_mode);
+	w[1] |= bits_set(CF_AIE_WORD1_END_OF_PROGRAM, this->w1.end_of_program);
+	w[1] |= bits_set(CF_AIE_WORD1_INST, this->w1.cf_inst);
+	w[1] |= bits_set(CF_AIE_WORD1_MARK, this->w1.mark);
+	w[1] |= bits_set(CF_AIE_WORD1_BARRIER, this->w1.barrier);
 	return 0;
 }
 
@@ -306,6 +365,34 @@ int inst_cf_alu_parse_kcache(struct inst_cf_alu *this, int ix)
 }
 
 static
+int inst_cf_alu_encode(struct inst_cf_alu *this)
+{
+	int *w;
+	struct inst_base *base;
+	struct inst_all *all;
+
+	all = container_of(this, struct inst_all, u.cf_alu);
+	base = &all->base;
+	w = base->w;
+	assert(base->num_words == 2);	/* TODO CF_ALU_EXT */
+
+	w[0] |= bits_set(CF_ALU_WORD0_ADDR, this->w0.addr);
+	w[0] |= bits_set(CF_ALU_WORD0_KCACHE_BANK0, this->w0.kcache_bank0);
+	w[0] |= bits_set(CF_ALU_WORD0_KCACHE_BANK1, this->w0.kcache_bank1);
+	w[0] |= bits_set(CF_ALU_WORD0_KCACHE_MODE0, this->w0.kcache_mode0);
+
+	w[1] |= bits_set(CF_ALU_WORD1_KCACHE_MODE1, this->w1.kcache_mode1);
+	w[1] |= bits_set(CF_ALU_WORD1_KCACHE_ADDR0, this->w1.kcache_addr0);
+	w[1] |= bits_set(CF_ALU_WORD1_KCACHE_ADDR1, this->w1.kcache_addr1);
+	w[1] |= bits_set(CF_ALU_WORD1_COUNT, this->w1.count - 1);
+	w[1] |= bits_set(CF_ALU_WORD1_ALT_CONST, this->w1.alt_const);
+	w[1] |= bits_set(CF_ALU_WORD1_INST, this->w1.cf_inst);
+	w[1] |= bits_set(CF_ALU_WORD1_WHOLE_QUAD_MODE, this->w1.whole_quad_mode);
+	w[1] |= bits_set(CF_ALU_WORD1_BARRIER, this->w1.barrier);
+	return 0;
+}
+
+static
 int inst_cf_alu_parse(struct inst_cf_alu *this, int code)
 {
 	int err, count;
@@ -441,5 +528,30 @@ int inst_cf_fix_labels_all(struct inst_all *all)
 
 	if (label)
 		err = inst_base_fix_label(base, label, addr);
+	return err;
+}
+
+/* Mirror cf_parse_all */
+int inst_cf_encode_all(struct inst_all *all)
+{
+	int err;
+	struct inst_base *base;
+
+	base = &all->base;
+
+	switch (base->type) {
+	case IT_CF:
+		err = inst_cf_encode(&all->u.cf);
+		break;
+	case IT_CF_AIE_SWIZ:
+		err = inst_cf_aie_swiz_encode(&all->u.cf_aie_swiz);
+		break;
+	case IT_CF_ALU:
+		err = inst_cf_alu_encode(&all->u.cf_alu);
+		break;
+	default:
+		err = EINVAL;
+		break;
+	}
 	return err;
 }

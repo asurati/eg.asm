@@ -148,6 +148,11 @@ int	inst_tex_parse_all(struct inst_all *all);
 
 int	inst_cf_fix_labels_all(struct inst_all *all);
 
+int	inst_cf_encode_all(struct inst_all *all);
+int	inst_vtx_encode_all(struct inst_all *all);
+int	inst_alu_encode_all(struct inst_all *all);
+int	inst_tex_encode_all(struct inst_all *all);
+
 int	inst_base_parse_swizzle(struct inst_base *this, int *out);
 int	inst_base_parse_channel(struct inst_base *this, int *out);
 int	inst_base_parse_register(struct inst_base *this, int *out);
