@@ -32,6 +32,7 @@ int inst_tex_parse_all(struct inst_all *all)
 		return EINVAL;
 
 	this->w0.tex_inst = code;
+	base->num_words = 4;
 
 	/* dst gpr.swizzle */
 	err = inst_base_parse_register(base, &this->w1.dst_gpr);

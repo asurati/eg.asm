@@ -177,6 +177,8 @@ int inst_alu_parse_all(struct inst_all *all)
 		code = ALU_INST_INTERP_XY;
 	}
 
+	base->num_words = 2;
+
 	switch (base->type) {
 	case IT_ALU_OP2:
 		err = inst_alu_parse(&all->u.alu, code, true);

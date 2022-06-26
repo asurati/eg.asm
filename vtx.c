@@ -34,6 +34,7 @@ int inst_vtx_parse_all(struct inst_all *all)
 	}
 
 	this->w0.vc_inst = code;
+	base->num_words = 4;
 
 	/* TODO assume fetch_type is vertex = 0 */
 

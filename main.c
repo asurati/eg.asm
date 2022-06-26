@@ -147,6 +147,25 @@ int inst_base_parse_labels(struct inst_base *this, int *ls, int *le)
 	}
 }
 
+int inst_base_fix_label(struct inst_base *this, const char *label, int *out)
+{
+	int i, j;
+	struct asm_base *as;
+	const struct inst_all *in;
+
+	as = this->as;
+	for (i = 0; i < as->num_insts; ++i) {
+		in = &as->insts[i];
+		for (j = 0; j < in->base.num_labels; ++j) {
+			if (strcmp(in->base.labels[j], label))
+				continue;
+			*out = in->base.pc;
+			return 0;
+		}
+	}
+	return EINVAL;
+}
+
 static
 int inst_all_parse(struct inst_all *this)
 {
@@ -168,18 +187,21 @@ int inst_all_parse(struct inst_all *this)
 	return err;
 }
 
-#if 0
 static
-int inst_base_fix_labels(struct inst_base *this)
+int inst_all_fix_labels(struct inst_all *this)
 {
-	union inst_all *in;
+	int err;
+	struct inst_base *base;
 
-	in = (union inst_all *)this;	/* Because ain.base is first member */
-	if (this->type >= IT_CF && this->type <= IT_CF_AIE_SWIZ)
-		return inst_cf_fix_labels_all(in);
-	return 0;
+	base = &this->base;
+
+	err = 0;
+	if (base->type >= IT_CF && base->type <= IT_CF_AIE_SWIZ)
+		err = inst_cf_fix_labels_all(this);
+	return err;
 }
 
+#if 0
 static
 int inst_base_encode(struct inst_base *this)
 {
@@ -197,26 +219,31 @@ int inst_base_encode(struct inst_base *this)
 #endif
 
 static
-void inst_base_print(struct inst_base *this, const char *buf)
+void inst_all_print(const struct inst_all *this)
 {
 	int i, j;
+	const char *buf;
+	const struct inst_base *base;
+
+	base = &this->base;
+	buf = this->base.as->buf;
 
 	/* print any labels first. */
-	for (i = 0; i < this->num_labels; ++i)
-		printf("/*%s:*/\n", this->labels[i]);
-	for (i = 0; i < this->num_words; ++i)
-		printf("0x%08x, ", this->w[i]);
-	printf ("/*%x: ", this->pc);
-	for (i = this->ls; i < this->le; ++i) {
+	for (i = 0; i < base->num_labels; ++i)
+		printf("/*%s:*/\n", base->labels[i]);
+	for (i = 0; i < base->num_words; ++i)
+		printf("0x%08x, ", base->w[i]);
+	printf ("/*%d: ", base->pc);
+	for (i = base->ls; i < base->le; ++i) {
 		/* Replace multiple spaces with a single space */
 		if (isspace(buf[i])) {
-			for (j = i + 1; j < this->le; ++j) {
+			for (j = i + 1; j < base->le; ++j) {
 				if (!isspace(buf[j]))
 					break;
 			}
 			i = j - 1;
 			/* Nothing but space until the end */
-			if (j == this->le)
+			if (j == base->le)
 				continue;
 			printf(" ");
 
@@ -225,30 +252,7 @@ void inst_base_print(struct inst_base *this, const char *buf)
 		}
 	}
 	printf("*/\n");
-
 }
-
-#if 0
-int inst_base_find_label(struct inst_base *this, const char *label, int *out)
-{
-	int i, j;
-	struct asm_base *as;
-	struct inst_base *in;
-
-	as = this->as;
-
-	for (i = 0; i < as->num_insts; ++i) {
-		in = &as->insts[i].base;
-		for (j = 0; j < in->num_labels; ++j) {
-			if (strcmp(in->labels[j], label))
-				continue;
-			*out = in->pc;
-			return 0;
-		}
-	}
-	return EINVAL;
-}
-#endif
 
 static
 int inst_base_parse_number_token(struct inst_base *this, const char *t,
@@ -417,10 +421,9 @@ int main(int argc, char **argv)
 		printf("err %d, i = %x, done = %d\n", err, i, as.num_insts);
 		return err;
 	}
-#if 0
 	for (i = 0; i < as.num_insts; ++i) {
-		in = &as.insts[i].base;
-		err = inst_base_fix_labels(in);
+		in = &as.insts[i];
+		err = inst_all_fix_labels(in);
 		if (err)
 			break;
 	}
@@ -430,6 +433,7 @@ int main(int argc, char **argv)
 		return err;
 	}
 
+#if 0
 	for (i = 0; i < as.num_insts; ++i) {
 		in = &as.insts[i].base;
 		err = inst_base_encode(in);
@@ -441,11 +445,10 @@ int main(int argc, char **argv)
 		printf("encode err %d, i = %x\n", err, i);
 		return err;
 	}
-
-	for (i = 0; i < as.num_insts; ++i) {
-		in = &as.insts[i].base;
-		inst_base_print(in, as.buf);
-	}
 #endif
+	for (i = 0; i < as.num_insts; ++i) {
+		in = &as.insts[i];
+		inst_all_print(in);
+	}
 	return err;
 }

@@ -390,6 +390,10 @@ int inst_cf_parse_all(struct inst_all *all)
 		code = CF_INST_ALU;
 	}
 
+	/* TODO: CF_ALU_EXT has 4 words */
+	assert(base->type != IT_CF_ALU_EXT);
+	base->num_words = 2;
+
 	switch (base->type) {
 	case IT_CF:
 		err = inst_cf_parse(&all->u.cf, code);
@@ -404,5 +408,38 @@ int inst_cf_parse_all(struct inst_all *all)
 		err = EINVAL;
 		break;
 	}
+	return err;
+}
+
+int inst_cf_fix_labels_all(struct inst_all *all)
+{
+	int err;
+	struct inst_base *base;
+	const char *label;
+	int *addr;
+
+	/* only IT_CF, IT_CF_ALU and IT_CF_ALU_EXT have labels. */
+	base = &all->base;
+	label = NULL;
+
+	switch (base->type) {
+	case IT_CF:
+		label = all->u.cf.w0.label;
+		addr = &all->u.cf.w0.addr;
+		break;
+	case IT_CF_ALU:
+		label = all->u.cf_alu.w0.label;
+		addr = &all->u.cf_alu.w0.addr;
+		break;
+	case IT_CF_ALU_EXT:
+		err = EINVAL;	/* TODO */
+		break;
+	default:
+		err = 0;
+		break;
+	}
+
+	if (label)
+		err = inst_base_fix_label(base, label, addr);
 	return err;
 }

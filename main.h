@@ -146,9 +146,14 @@ int	inst_vtx_parse_all(struct inst_all *all);
 int	inst_alu_parse_all(struct inst_all *all);
 int	inst_tex_parse_all(struct inst_all *all);
 
+int	inst_cf_fix_labels_all(struct inst_all *all);
+
 int	inst_base_parse_swizzle(struct inst_base *this, int *out);
 int	inst_base_parse_channel(struct inst_base *this, int *out);
 int	inst_base_parse_register(struct inst_base *this, int *out);
 int	inst_base_parse_number(struct inst_base *this, int *out);
 int	inst_base_parse_count(struct inst_base *this, int *out);
+
+int	inst_base_fix_label(struct inst_base *this, const char *label,
+			    int *out);
 #endif
