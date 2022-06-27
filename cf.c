@@ -85,6 +85,9 @@ int inst_cf_parse(struct inst_cf *this, int code)
 	this->w1.cf_inst = code;
 
 	switch (code) {
+	case CF_INST_CALL_FS:
+		this->w1.count = 1;	/* Nesting Counter Increment */
+		break;
 	case CF_INST_VC:
 	case CF_INST_TC:
 		/* # of instructions in (%d) or (0x%x) */
@@ -92,6 +95,9 @@ int inst_cf_parse(struct inst_cf *this, int code)
 		if (err)
 			return err;
 		this->w1.count = count;	/* -1 when encoding. */
+		break;
+	default:
+		this->w1.count = 1;	/* To set count - 1 to 0. */
 		break;
 	}
 

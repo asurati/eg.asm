@@ -248,7 +248,6 @@ void inst_all_print(const struct inst_all *this)
 			if (j == base->le)
 				continue;
 			printf(" ");
-
 		} else {
 			printf("%c", buf[i]);
 		}

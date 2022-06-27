@@ -98,9 +98,9 @@
 #define CF_ALU_WORD1_BARRIER_BITS			1
 
 /* val << 4, when considered relative to CF_WORD1.INST */
-#define CF_INST_ALU					(8 << 4)
+#define CF_INST_ALU					8
 /* TODO: other INST */
-#define CF_INST_ALU_ELSE_AFTER				(15 << 4)
+#define CF_INST_ALU_ELSE_AFTER				15
 
 /**** CF_{ALLOC,IMPORT,EXPORT}_WORD0 ****/
 #define CF_AIE_WORD0_ARRAY_BASE_POS			0
