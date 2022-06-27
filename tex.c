@@ -104,19 +104,19 @@ int inst_tex_parse_all(struct inst_all *all)
 	    inst_base_is_next_token(base, "vs") == false)
 		return EINVAL;
 
-	/* buffer */
+	/* sampler */
 	if (inst_base_is_next_token(base, "[") == false)
 		return EINVAL;
-	err = inst_base_parse_number(base, &this->w0.rsrc_id);
+	err = inst_base_parse_number(base, &this->w2.sampler_id);
 	if (err)
 		return err;
 	if (inst_base_is_next_token(base, "]") == false)
 		return EINVAL;
 
-	/* sampler */
+	/* buffer */
 	if (inst_base_is_next_token(base, "[") == false)
 		return EINVAL;
-	err = inst_base_parse_number(base, &this->w2.sampler_id);
+	err = inst_base_parse_number(base, &this->w0.rsrc_id);
 	if (err)
 		return err;
 	if (inst_base_is_next_token(base, "]") == false)

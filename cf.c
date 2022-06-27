@@ -467,6 +467,9 @@ int inst_cf_parse_all(struct inst_all *all)
 	if (inst_base_is_next_token(base, "fs")) {
 		base->type = IT_CF;
 		code = CF_INST_CALL_FS;
+	} else if (inst_base_is_next_token(base, "tc")) {
+		base->type = IT_CF;
+		code = CF_INST_TC;
 	} else if (inst_base_is_next_token(base, "vc")) {
 		base->type = IT_CF;
 		code = CF_INST_VC;
